@@ -26,7 +26,7 @@ app.get("/api/jwtid", isAuthenticated, (req, res) => {
   res.status(200).json({ id: res.locals.user.id });
 });
 
-const server = app.listen(process.env.PORT || 8000, "192.168.1.250", (err) => {
+const server = app.listen(process.env.PORT || 8000, (err) => {
   // eslint-disable-next-line no-console
   if (err) return console.log(err.message);
   // eslint-disable-next-line no-console
