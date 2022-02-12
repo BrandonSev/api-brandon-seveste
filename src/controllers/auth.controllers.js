@@ -47,7 +47,7 @@ module.exports.signIn = async (req, res) => {
       const comparison = await bcrypt.compare(password, result[0].password);
       if (comparison) {
         const token = createToken(result[0].id);
-        res.cookie("jwt", token, { httpOnly: false, maxAge });
+        res.cookie("jwt", token, { httpOnly: true, maxAge });
         return res.status(200).json({
           message: "Connexion réussi",
         });

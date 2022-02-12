@@ -22,7 +22,7 @@ app.use("*", checkUser);
 // Prefix all routes with /api
 app.use("/api", mainRouter);
 app.use("/images", express.static("public/images"));
-app.get("/api/jwtid", isAuthenticated, (req, res) => {
+app.get("/api/jwtid", checkUser, isAuthenticated, (req, res) => {
   res.status(200).json({ id: res.locals.user.id });
 });
 
