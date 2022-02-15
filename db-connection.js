@@ -21,7 +21,7 @@ if (process.env.NODE_ENV === "test") {
   };
 }
 
-const connection = mysql.createConnection(config);
+const connection = mysql.createPool(config);
 
 const query = (...args) => {
   return new Promise((resolve, reject) => {

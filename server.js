@@ -32,7 +32,7 @@ const server = app.listen(process.env.PORT || 8000, (err) => {
   // eslint-disable-next-line no-console
   console.log(`La connexion au serveur a réussi: http://localhost:${process.env.PORT || 8000}`);
   // Test connexion to MYSQL DB
-  return connection.connect((dbErr) => {
+  return connection.getConnection((dbErr) => {
     // eslint-disable-next-line no-console
     if (dbErr) return console.log(dbErr.message);
     // eslint-disable-next-line no-console

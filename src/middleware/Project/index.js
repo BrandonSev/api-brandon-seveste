@@ -3,8 +3,8 @@ const path = require("path");
 const { Project, Images } = require("../../models");
 
 const validateCreateProject = (req, res, next) => {
-  const { title, description, start_date, end_date, active, tags } = req.body;
-  if (description && title && start_date && end_date && tags) {
+  const { title, description, start_date, end_date, active, tags, url } = req.body;
+  if (description && title && start_date && end_date && tags && url) {
     const projectInformation = {};
     if (title) {
       projectInformation.title = title;
@@ -24,6 +24,9 @@ const validateCreateProject = (req, res, next) => {
     if (active) {
       projectInformation.active = active;
     }
+    if (url) {
+      projectInformation.url = url;
+    }
     req.projectInformation = projectInformation;
     return next();
   }
@@ -31,7 +34,7 @@ const validateCreateProject = (req, res, next) => {
 };
 
 const validatePutProject = async (req, res, next) => {
-  const { title, description, start_date, end_date, tags, active } = req.body;
+  const { title, description, start_date, end_date, tags, active, url } = req.body;
   const { id } = req.params;
   try {
     const [result] = await Project.findOneById(id);
@@ -54,6 +57,9 @@ const validatePutProject = async (req, res, next) => {
     }
     if (tags) {
       projectInformation.tags = tags;
+    }
+    if (url) {
+      projectInformation.url = url;
     }
     req.projectInformation = projectInformation;
     return next();
