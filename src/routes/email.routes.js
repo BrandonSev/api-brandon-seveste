@@ -1,16 +1,24 @@
 require("dotenv").config();
 const emailRouter = require("express").Router();
 const nodemailer = require("nodemailer");
+const { google } = require("googleapis");
 
-const { SENDER_EMAIL_ADDRESS, SENDER_EMAIL_PASSWORD } = process.env;
+const { SENDER_EMAIL_ADDRESS, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, GOOGLE_REDIRECT_URL, GOOGLE_REFRESH_TOKEN } = process.env;
 
+const oAuth2client = new google.auth.OAuth2(GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, GOOGLE_REDIRECT_URL);
+oAuth2client.setCredentials({ refresh_token: GOOGLE_REFRESH_TOKEN });
+const accessToken = oAuth2client.getAccessToken();
 const transport = nodemailer.createTransport({
-  host: "smtp.gmail.com",
+  service: "gmail",
   port: 465,
   secure: true,
   auth: {
+    type: "OAuth2",
     user: SENDER_EMAIL_ADDRESS,
-    pass: SENDER_EMAIL_PASSWORD,
+    clientId: GOOGLE_CLIENT_ID,
+    clientSecret: GOOGLE_CLIENT_SECRET,
+    refreshToken: GOOGLE_REFRESH_TOKEN,
+    accessToken,
   },
 });
 
