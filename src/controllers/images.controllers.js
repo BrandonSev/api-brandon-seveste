@@ -1,4 +1,5 @@
 const multer = require("multer");
+const sharp = require("sharp");
 const { Images } = require("../models");
 
 const findAll = async (req, res) => {
@@ -32,8 +33,10 @@ const create = async (req, res, next) => {
   }
   req.files.map(async (file) => {
     try {
+      const imageSrc = `${new Date().getTime()}-${file.originalname.split(".")[0]}.webp`;
+      await sharp(file.buffer).webp({ quality: 70 }).toFile(`public/images/${imageSrc}`);
       return await Images.createOne({
-        src: file.filename,
+        src: imageSrc,
         alt: file.originalname.split(".")[0],
         project_id: req.id || req.body.project_id,
       });
@@ -48,8 +51,10 @@ const createOne = async (req, res, next) => {
     return next();
   }
   try {
+    const imageSrc = `${new Date().getTime()}-${req.files[0].originalname.split(".")[0]}.webp`;
+    await sharp(req.files[0].buffer).webp({ quality: 70 }).toFile(`public/images/${imageSrc}`);
     const [image] = await Images.createOne({
-      src: req.files[0].filename,
+      src: imageSrc,
       alt: req.files[0].originalname.split(".")[0],
       project_id: req.id || req.body.project_id,
     });
@@ -61,14 +66,15 @@ const createOne = async (req, res, next) => {
 };
 
 const uploadFile = (req, res, next) => {
-  const storage = multer.diskStorage({
-    destination: (_req, _file, cb) => {
-      cb(null, "public/images");
-    },
-    filename: (_, file, cb) => {
-      cb(null, `${Date.now()}-${file.originalname}`);
-    },
-  });
+  // const storage = multer.diskStorage({
+  //   destination: (_req, _file, cb) => {
+  //     cb(null, "public/images");
+  //   },
+  //   filename: (_, file, cb) => {
+  //     cb(null, `${Date.now()}-${file.originalname}`);
+  //   },
+  // });
+  const storage = multer.memoryStorage();
   const fileFilter = (request, file, cb) => {
     const typeArray = file.mimetype.split("/");
     const fileType = typeArray[1];
