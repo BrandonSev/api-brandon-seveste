@@ -12,6 +12,6 @@ COPY ./ /usr/src/app
 ENV NODE_ENV production
 ENV PORT 80
 EXPOSE 80
+RUN npm run migrate-db
 
-CMD [ "npm", "migrate-db" ]
 CMD [ "npm", "start" ]
