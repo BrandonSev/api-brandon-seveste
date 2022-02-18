@@ -9,9 +9,9 @@ WORKDIR /usr/src/app
 COPY ./package.json /usr/src/app/
 RUN npm install --production && npm cache clean --force
 COPY ./ /usr/src/app
+RUN npm run migrate-db
 ENV NODE_ENV production
 ENV PORT 80
 EXPOSE 80
-RUN npm run migrate-db
 
 CMD [ "npm", "start" ]
