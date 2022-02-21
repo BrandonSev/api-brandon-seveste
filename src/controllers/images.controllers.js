@@ -46,12 +46,48 @@ const create = async (req, res, next) => {
   });
   return next();
 };
+
+/**
+ * @param {string} imageSrc
+ * @param {Buffer} image
+ * @param {string} extension
+ * @returns {Promise<Object>}
+ */
+const createResponsiveImages = async (image, imageSrc, extension) => {
+  const breakpointList = [
+    {
+      break: "sm",
+      width: 360,
+    },
+    {
+      break: "md",
+      width: 768,
+    },
+    {
+      break: "xl",
+      width: 1024,
+    },
+  ];
+  try {
+    return breakpointList.map(async (breakpoint) => {
+      await sharp(image)
+        .resize({ width: breakpoint.width })
+        .webp({ quality: 70 })
+        .toFile(`public/images/${imageSrc.split(".")[0]}-${breakpoint.break}.${extension}`);
+    });
+  } catch (e) {
+    // eslint-disable-next-line no-console
+    return console.log(e.message);
+  }
+};
+
 const createOne = async (req, res, next) => {
   if (!req.files) {
     return next();
   }
   try {
     const imageSrc = `${new Date().getTime()}-${req.files[0].originalname.split(".")[0]}.webp`;
+    await createResponsiveImages(req.files[0].buffer, imageSrc, "webp");
     await sharp(req.files[0].buffer).webp({ quality: 70 }).toFile(`public/images/${imageSrc}`);
     const [image] = await Images.createOne({
       src: imageSrc,
@@ -66,14 +102,6 @@ const createOne = async (req, res, next) => {
 };
 
 const uploadFile = (req, res, next) => {
-  // const storage = multer.diskStorage({
-  //   destination: (_req, _file, cb) => {
-  //     cb(null, "public/images");
-  //   },
-  //   filename: (_, file, cb) => {
-  //     cb(null, `${Date.now()}-${file.originalname}`);
-  //   },
-  // });
   const storage = multer.memoryStorage();
   const fileFilter = (request, file, cb) => {
     const typeArray = file.mimetype.split("/");

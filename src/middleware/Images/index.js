@@ -21,6 +21,7 @@ const deletePrevImage = async (req, res, next) => {
   }
   try {
     const [[image]] = await Images.findOneById(req.params.id);
+    if (!image) return res.status(404).send();
     return fs.unlink(path.join(__dirname, `../../../public/images/${image.src}`), (err) => {
       if (err) return res.status(500).send();
       return next();
