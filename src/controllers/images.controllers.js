@@ -27,26 +27,6 @@ const findOneById = async (req, res) => {
   }
 };
 
-const create = async (req, res, next) => {
-  if (!req.files) {
-    return next();
-  }
-  req.files.map(async (file) => {
-    try {
-      const imageSrc = `${new Date().getTime()}-${file.originalname.split(".")[0]}.webp`;
-      await sharp(file.buffer).webp({ quality: 70 }).toFile(`public/images/${imageSrc}`);
-      return await Images.createOne({
-        src: imageSrc,
-        alt: file.originalname.split(".")[0],
-        project_id: req.id || req.body.project_id,
-      });
-    } catch (e) {
-      return res.status(500).send(e.message);
-    }
-  });
-  return next();
-};
-
 /**
  * @param {string} imageSrc
  * @param {Buffer} image
@@ -80,6 +60,42 @@ const createResponsiveImages = async (image, imageSrc, extension) => {
     return console.log(e.message);
   }
 };
+
+const create = async (req, res, next) => {
+  if (!req.files) {
+    return next();
+  }
+  req.files.map(async (file) => {
+    try {
+      const imageSrc = `${new Date().getTime()}-${file.originalname.split(".")[0]}.webp`;
+      await createResponsiveImages(file.buffer, imageSrc, "webp");
+      await sharp(file.buffer).webp({ quality: 70 }).toFile(`public/images/${imageSrc}`);
+      return await Images.createOne({
+        src: imageSrc,
+        alt: file.originalname.split(".")[0],
+        project_id: req.id || req.body.project_id,
+      });
+    } catch (e) {
+      return res.status(500).send(e.message);
+    }
+  });
+  return next();
+};
+
+const breakpointList = [
+  {
+    break: "sm",
+    width: 360,
+  },
+  {
+    break: "md",
+    width: 768,
+  },
+  {
+    break: "xl",
+    width: 1024,
+  },
+];
 
 const createOne = async (req, res, next) => {
   if (!req.files) {
@@ -133,7 +149,9 @@ const removeOneById = async (req, res) => {
   try {
     const { id } = req.params;
     const [image] = await Images.deleteOne(id);
-    if (image.affectedRows > 0) return res.status(204).send();
+    if (image.affectedRows > 0) {
+      return res.status(204).send();
+    }
     return res.status(404).send();
   } catch (e) {
     return res.status(500).send(e.message);
@@ -161,4 +179,5 @@ module.exports = {
   uploadFile,
   removeOneById,
   updateOne,
+  breakpointList,
 };

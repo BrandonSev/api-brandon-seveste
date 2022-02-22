@@ -1,6 +1,7 @@
 const fs = require("fs");
 const path = require("path");
 const { Project, Images } = require("../../models");
+const { breakpointList } = require("../../controllers/images.controllers");
 
 const validateCreateProject = (req, res, next) => {
   const { title, description, start_date, end_date, active, tags, url } = req.body;
@@ -76,6 +77,12 @@ const removeLastImages = async (req, res, next) => {
       // eslint-disable-next-line consistent-return
       fs.unlink(path.join(__dirname, `../../../public/images/${image.src}`), (err) => {
         if (err) return res.status(500).send();
+      });
+      breakpointList.forEach((breakpoint) => {
+        // eslint-disable-next-line consistent-return
+        fs.unlink(path.join(__dirname, `../../../public/images/${image.src.split(".")[0]}-${breakpoint.break}.${image.src.split(".")[1]}`), (err) => {
+          if (err) return res.status(500).send();
+        });
       });
     });
     return next();
