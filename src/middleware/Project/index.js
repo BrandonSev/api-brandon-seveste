@@ -5,7 +5,8 @@ const { breakpointList } = require("../../controllers/images.controllers");
 
 const validateCreateProject = (req, res, next) => {
   const { title, description, start_date, end_date, active, tags, url } = req.body;
-  if (description && title && start_date && end_date && tags && url) {
+  const [file] = req.files;
+  if (description && title && start_date && end_date && tags && url && file) {
     const projectInformation = {};
     if (title) {
       projectInformation.title = title;
@@ -69,10 +70,10 @@ const validatePutProject = async (req, res, next) => {
   }
 };
 
-const removeLastImages = async (req, res, next) => {
+const removeLastProjectImages = async (req, res, next) => {
   try {
     const [images] = await Images.findImagesByProjectId(req.params.id);
-    if (!images.length) return next();
+    // if (!images.length) return next();
     images.forEach((image) => {
       // eslint-disable-next-line consistent-return
       fs.unlink(path.join(__dirname, `../../../public/images/${image.src}`), (err) => {
@@ -91,4 +92,11 @@ const removeLastImages = async (req, res, next) => {
   }
 };
 
-module.exports = { validateCreateProject, validatePutProject, removeLastImages };
+const validateRemoveProject = async (req, res, next) => {
+  const { id } = req.params;
+  const [project] = await Project.findOneById(id);
+  if (!project.length) return res.status(404).send();
+  return next();
+};
+
+module.exports = { validateCreateProject, validatePutProject, removeLastProjectImages, validateRemoveProject };

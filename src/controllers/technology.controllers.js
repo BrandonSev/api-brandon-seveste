@@ -1,5 +1,11 @@
 const { Technology } = require("../models");
 
+/**
+ * Middleware qui permet de récuperer toutes les technologies
+ * @param req
+ * @param res
+ * @returns {Promise<*>}
+ */
 const findAll = async (req, res) => {
   try {
     const [technology] = await Technology.findAll();
@@ -13,13 +19,19 @@ const findAll = async (req, res) => {
   }
 };
 
+/**
+ * Middleware qui permet de récuperer une technologie
+ * @param req
+ * @param res
+ * @returns {Promise<*>}
+ */
 const findOneById = async (req, res) => {
   const id = req.params.id ? req.params.id : req.id;
   const statusCode = req.method === "POST" ? 201 : 200;
   if (!id || !Number(id)) return res.status(400).json({ message: "Vous devez fournir un id valide" });
   try {
     const [results] = await Technology.findOneById(id);
-    if (results.length === 0) return res.status(404).send();
+    if (!results.length) return res.status(404).send();
     // recuperer ici les sous catégorie associés
     return res.status(statusCode).json({ ...results[0] });
   } catch (e) {
@@ -27,6 +39,13 @@ const findOneById = async (req, res) => {
   }
 };
 
+/**
+ * Middleware qui permet de créer une technologie
+ * @param req
+ * @param res
+ * @param next
+ * @returns {Promise<*>}
+ */
 const createOne = async (req, res, next) => {
   try {
     const [result] = await Technology.createOne(req.technologyInformation);
@@ -37,6 +56,13 @@ const createOne = async (req, res, next) => {
   }
 };
 
+/**
+ * Middleware qui permet de modifier une technologie
+ * @param req
+ * @param res
+ * @param next
+ * @returns {Promise<*>}
+ */
 const updateOne = async (req, res, next) => {
   const { id } = req.params;
   try {
@@ -47,11 +73,16 @@ const updateOne = async (req, res, next) => {
   }
 };
 
+/**
+ * Middleware qui permet de supprimer une technologie
+ * @param req
+ * @param res
+ * @returns {Promise<*>}
+ */
 const deleteOne = async (req, res) => {
   const { id } = req.params;
   try {
-    const [result] = await Technology.deleteOne(id);
-    if (result.affectedRows === 0) return res.status(404).send();
+    await Technology.deleteOne(id);
     return res.status(204).send();
   } catch (e) {
     return res.status(500).send(e.message);

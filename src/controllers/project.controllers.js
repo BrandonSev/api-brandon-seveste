@@ -1,5 +1,11 @@
 const { Project, Images } = require("../models");
 
+/**
+ * Middleware qui permet de récuperer tout les projets
+ * @param req
+ * @param res
+ * @returns {Promise<*>}
+ */
 const findAll = async (req, res) => {
   const { active } = req.query;
   if (active) {
@@ -34,6 +40,12 @@ const findAll = async (req, res) => {
   }
 };
 
+/**
+ * Middleware qui permet de récupérer un projet
+ * @param req
+ * @param res
+ * @returns {Promise<*>}
+ */
 const findOneById = async (req, res) => {
   const id = req.params.id ? req.params.id : req.id;
   const statusCode = req.method === "POST" ? 201 : 200;
@@ -48,6 +60,13 @@ const findOneById = async (req, res) => {
   }
 };
 
+/**
+ * Middleware qui permet de créer un projet
+ * @param req
+ * @param res
+ * @param next
+ * @returns {Promise<*>}
+ */
 const createOne = async (req, res, next) => {
   try {
     const [result] = await Project.createOne(req.projectInformation);
@@ -58,6 +77,13 @@ const createOne = async (req, res, next) => {
   }
 };
 
+/**
+ * Middleware qui permet de mettre à jour un projet
+ * @param req
+ * @param res
+ * @param next
+ * @returns {Promise<*>}
+ */
 const updateOne = async (req, res, next) => {
   const { id } = req.params;
   try {
@@ -68,11 +94,16 @@ const updateOne = async (req, res, next) => {
   }
 };
 
+/**
+ * Middleware qui permet de supprimer un projet
+ * @param req
+ * @param res
+ * @returns {Promise<*>}
+ */
 const deleteOne = async (req, res) => {
   const { id } = req.params;
   try {
-    const [result] = await Project.deleteOne(id);
-    if (result.affectedRows === 0) return res.status(404).send();
+    await Project.deleteOne(id);
     return res.status(204).send();
   } catch (e) {
     return res.status(500).send(e.message);

@@ -1,0 +1,1 @@
+ALTER TABLE project ADD url VARCHAR(255) NOT NULL;
