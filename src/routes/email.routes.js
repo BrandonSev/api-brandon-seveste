@@ -5,6 +5,7 @@ const { google } = require("googleapis");
 
 const { SENDER_EMAIL_ADDRESS, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, GOOGLE_REDIRECT_URL, GOOGLE_REFRESH_TOKEN } = process.env;
 
+// Utilisation de OAuth2 pour l'envoie de mail en prod
 const oAuth2client = new google.auth.OAuth2(GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, GOOGLE_REDIRECT_URL);
 oAuth2client.setCredentials({ refresh_token: GOOGLE_REFRESH_TOKEN });
 const accessToken = oAuth2client.getAccessToken();
@@ -28,9 +29,11 @@ emailRouter.post("/send", async (req, res) => {
     from: email,
     to: SENDER_EMAIL_ADDRESS,
     subject: `${subject} - ${name}`,
-    html: `<p style="font-weight: bold">${name}</p><p>${message}</p>`,
+    html: `<p style="font-weight: bold">${name}</p><p>${message}</p>
+    <p style="font-weight: lighter">${email}</p>
+`,
   };
-  await transport.sendMail(mailOptions, (err) => {
+  transport.sendMail(mailOptions, (err) => {
     if (err) return res.status(500).send(err);
     return res.status(200).json({ message: "Le mail a bien été envoyé" });
   });

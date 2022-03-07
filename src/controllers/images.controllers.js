@@ -2,86 +2,10 @@ const multer = require("multer");
 const sharp = require("sharp");
 const { Images } = require("../models");
 
-const findAll = async (req, res) => {
-  try {
-    const [results] = await Images.findAll();
-    return res.status(200).json(results);
-  } catch (e) {
-    return res.status(500).send(e.message);
-  }
-};
-
-const findOneById = async (req, res) => {
-  const id = req.params.id ? req.params.id : req.id || req.body.project_id;
-  const statusCode = req.method === "POST" ? 201 : 200;
-
-  try {
-    const [result] = await Images.findOneById(id);
-    if (!result.length) {
-      res.status(404).send();
-    } else {
-      res.status(statusCode).json(result);
-    }
-  } catch (err) {
-    res.status(500).send(err.message);
-  }
-};
-
 /**
- * @param {string} imageSrc
- * @param {Buffer} image
- * @param {string} extension
- * @returns {Promise<Object>}
+ * Liste l'ensemble des breakpoints pour definir les différents formats d'images
+ * @type {[{break: string, width: number},{break: string, width: number},{break: string, width: number}]}
  */
-const createResponsiveImages = async (image, imageSrc, extension) => {
-  const breakpointList = [
-    {
-      break: "sm",
-      width: 360,
-    },
-    {
-      break: "md",
-      width: 768,
-    },
-    {
-      break: "xl",
-      width: 1024,
-    },
-  ];
-  try {
-    return breakpointList.map(async (breakpoint) => {
-      await sharp(image)
-        .resize({ width: breakpoint.width })
-        .webp({ quality: 70 })
-        .toFile(`public/images/${imageSrc.split(".")[0]}-${breakpoint.break}.${extension}`);
-    });
-  } catch (e) {
-    // eslint-disable-next-line no-console
-    return console.log(e.message);
-  }
-};
-
-const create = async (req, res, next) => {
-  if (!req.files) {
-    return next();
-  }
-  req.files.map(async (file) => {
-    try {
-      const imageSrc = `${new Date().getTime()}-${file.originalname.split(".")[0]}.webp`;
-      await createResponsiveImages(file.buffer, imageSrc, "webp");
-      await sharp(file.buffer).webp({ quality: 70 }).toFile(`public/images/${imageSrc}`);
-      return await Images.createOne({
-        src: imageSrc,
-        alt: file.originalname.split(".")[0],
-        project_id: req.id || req.body.project_id,
-      });
-    } catch (e) {
-      return res.status(500).send(e.message);
-    }
-  });
-  return next();
-};
-
 const breakpointList = [
   {
     break: "sm",
@@ -97,26 +21,144 @@ const breakpointList = [
   },
 ];
 
-const createOne = async (req, res, next) => {
-  if (!req.files) {
-    return next();
-  }
+/**
+ * Middleware qui permet de récupérer l'ensemble des images de la BDD
+ * @param req
+ * @param res
+ * @returns {Promise<*>}
+ */
+const findAll = async (req, res) => {
   try {
-    const imageSrc = `${new Date().getTime()}-${req.files[0].originalname.split(".")[0]}.webp`;
-    await createResponsiveImages(req.files[0].buffer, imageSrc, "webp");
-    await sharp(req.files[0].buffer).webp({ quality: 70 }).toFile(`public/images/${imageSrc}`);
-    const [image] = await Images.createOne({
-      src: imageSrc,
-      alt: req.files[0].originalname.split(".")[0],
-      project_id: req.id || req.body.project_id,
-    });
-    req.id = image.insertId;
+    const [results] = await Images.findAll();
+    return res.status(200).json(results);
   } catch (e) {
     return res.status(500).send(e.message);
   }
+};
+
+/**
+ * Middleware qui permet de recupérer une image
+ * @param req
+ * @param res
+ * @returns {Promise<void>}
+ */
+const findOneById = async (req, res) => {
+  const id = req.params.id ? req.params.id : req.id;
+  const statusCode = req.method === "POST" ? 201 : 200;
+
+  try {
+    const [result] = await Images.findOneById(id);
+    if (!result.length) return res.status(404).send();
+    return res.status(statusCode).json(result);
+  } catch (err) {
+    return res.status(500).send(err.message);
+  }
+};
+
+/**
+ * Fonction qui permet de créer différentes tailles d'images à partir d'une image originale
+ * @param {string} imageSrc
+ * @param {Buffer} image
+ * @param {string} extension
+ * @returns {Promise<Object>}
+ */
+const createResponsiveImages = async (image, imageSrc, extension) => {
+  try {
+    return breakpointList.map(async (breakpoint) => {
+      await sharp(image)
+        .resize(breakpoint.width)
+        .webp({ quality: 70 })
+        .toFile(`public/images/${imageSrc.split(".")[0]}-${breakpoint.break}.${extension}`);
+    });
+  } catch (e) {
+    // eslint-disable-next-line no-console
+    return console.log(e.message);
+  }
+};
+
+/**
+ * Fonction qui permet de créer une image dans le dossier local
+ * @param file
+ * @param {String} extension
+ * @return {Promise<String>} Retourne le nom de l'image crée
+ */
+const createImage = async (file, extension) => {
+  const imageSrc = `${new Date().getTime()}-${file.originalname.split(".")[0]}.${extension}`;
+  await sharp(file.buffer).webp({ quality: 70 }).toFile(`public/images/${imageSrc}`);
+  return imageSrc;
+};
+
+/**
+ * Middleware qui permet de créer plusieurs images responsive en BDD
+ * @param req
+ * @param res
+ * @param next
+ * @returns {Promise<*>}
+ */
+const createResponsiveSize = async (req, res, next) => {
+  req.files.map(async (file) => {
+    try {
+      const imageSrc = await createImage(file, "webp");
+      await createResponsiveImages(file.buffer, imageSrc, "webp");
+      return await Images.createOne({
+        src: imageSrc,
+        alt: file.originalname.split(".")[0],
+        project_id: req.id || req.body.project_id,
+      });
+    } catch (e) {
+      return res.status(500).send(e.message);
+    }
+  });
   return next();
 };
 
+/**
+ * Middleware qui permet de créer plusieurs images (formater en .webp) en BDD
+ * @param req
+ * @param res
+ * @param next
+ * @returns {Promise<*>}
+ */
+const createMultiple = async (req, res, next) => {
+  req.files.map(async (file) => {
+    try {
+      const image = await createImage(file, "webp");
+      return await Images.createOne({
+        src: image,
+        alt: file.originalname.split(".")[0],
+        project_id: req.id || req.body.project_id,
+      });
+    } catch (e) {
+      return res.status(500).send(e.message);
+    }
+  });
+  return next();
+};
+
+/**
+ * Middleware qui permet de créer une image
+ * @param req
+ * @param res
+ * @param next
+ * @returns {Promise<*>}
+ */
+const createOne = async (req, res, next) => {
+  try {
+    const [image] = await Images.createOne(req.imageInformation);
+    req.id = image.insertId;
+    return next();
+  } catch (e) {
+    return res.status(500).send();
+  }
+};
+
+/**
+ * Middleware qui permet de gérer les fichiers envoyés dans la requète
+ * @param req
+ * @param res
+ * @param next
+ * @returns {*}
+ */
 const uploadFile = (req, res, next) => {
   const storage = multer.memoryStorage();
   const fileFilter = (request, file, cb) => {
@@ -145,6 +187,12 @@ const uploadFile = (req, res, next) => {
   });
 };
 
+/**
+ * Fonction qui permet de supprimer une image
+ * @param req
+ * @param res
+ * @returns {Promise<*>}
+ */
 const removeOneById = async (req, res) => {
   try {
     const { id } = req.params;
@@ -158,14 +206,18 @@ const removeOneById = async (req, res) => {
   }
 };
 
+/**
+ * Middleware qui permet de mettre à jour les informations d'une image
+ * @param req
+ * @param res
+ * @param next
+ * @returns {Promise<*>}
+ */
 const updateOne = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const [image] = await Images.updateOne(req.imageInformation, id);
-    if (image.affectedRows > 0) {
-      return next();
-    }
-    return res.status(404).send();
+    await Images.updateOne(req.imageInformation, id);
+    return next();
   } catch (e) {
     return res.status(500).send(e.message);
   }
@@ -174,10 +226,12 @@ const updateOne = async (req, res, next) => {
 module.exports = {
   findAll,
   findOneById,
-  create,
+  createResponsiveSize,
   createOne,
+  createMultiple,
   uploadFile,
   removeOneById,
   updateOne,
   breakpointList,
+  createImage,
 };

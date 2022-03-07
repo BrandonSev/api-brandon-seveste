@@ -1,5 +1,11 @@
 const { Category, UnderCategory, Technology } = require("../models");
 
+/**
+ * Middleware qui permet de récuperer toutes les catégories
+ * @param req
+ * @param res
+ * @returns {Promise<*>}
+ */
 const findAll = async (req, res) => {
   try {
     const [categories] = await Category.findAll();
@@ -41,6 +47,12 @@ const findAll = async (req, res) => {
   }
 };
 
+/**
+ * Middleware qui permet de récuperer une catégorie
+ * @param req
+ * @param res
+ * @returns {Promise<*>}
+ */
 const findOneById = async (req, res) => {
   const id = req.params.id ? req.params.id : req.id;
   const statusCode = req.method === "POST" ? 201 : 200;
@@ -55,6 +67,13 @@ const findOneById = async (req, res) => {
   }
 };
 
+/**
+ * Middleware qui permet de créer une catégorie
+ * @param req
+ * @param res
+ * @param next
+ * @returns {Promise<*>}
+ */
 const createOne = async (req, res, next) => {
   try {
     const [result] = await Category.createOne(req.categoryInformation);
@@ -65,6 +84,13 @@ const createOne = async (req, res, next) => {
   }
 };
 
+/**
+ * Middleware qui permet de mettre à jour une catégorie
+ * @param req
+ * @param res
+ * @param next
+ * @returns {Promise<*>}
+ */
 const updateOne = async (req, res, next) => {
   const { id } = req.params;
   try {
@@ -75,11 +101,16 @@ const updateOne = async (req, res, next) => {
   }
 };
 
+/**
+ * Middleware qui permet de supprimer une catégorie
+ * @param req
+ * @param res
+ * @returns {Promise<*>}
+ */
 const deleteOne = async (req, res) => {
   const { id } = req.params;
   try {
-    const [result] = await Category.deleteOne(id);
-    if (result.affectedRows === 0) return res.status(404).send();
+    await Category.deleteOne(id);
     return res.status(204).send();
   } catch (e) {
     return res.status(500).send(e.message);

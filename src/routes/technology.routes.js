@@ -1,6 +1,6 @@
 const technologyRouter = require("express").Router();
 const { TechnologyController, ImagesController } = require("../controllers");
-const { validatePostTechnology, removePrevImage, validatePutTechnology } = require("../middleware/Technology");
+const { validatePostTechnology, removePrevTechnologyImage, validatePutTechnology, validateRemoveTechnology } = require("../middleware/Technology");
 
 technologyRouter.get("/", TechnologyController.findAll);
 technologyRouter.get("/:id", TechnologyController.findOneById);
@@ -11,11 +11,11 @@ technologyRouter.put(
   "/:id",
   ImagesController.uploadFile,
   validatePutTechnology,
-  removePrevImage,
+  removePrevTechnologyImage,
   TechnologyController.updateOne,
   TechnologyController.findOneById,
 );
 
-technologyRouter.delete("/:id", removePrevImage, TechnologyController.deleteOne);
+technologyRouter.delete("/:id", validateRemoveTechnology, removePrevTechnologyImage, TechnologyController.deleteOne);
 
 module.exports = technologyRouter;

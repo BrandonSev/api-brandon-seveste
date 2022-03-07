@@ -1,5 +1,11 @@
 const { UnderCategory } = require("../models");
 
+/**
+ * Middleware qui permet de récuperer toutes les sous-catégories
+ * @param req
+ * @param res
+ * @returns {Promise<*>}
+ */
 const findAll = async (req, res) => {
   try {
     const [results] = await UnderCategory.findAll();
@@ -9,6 +15,12 @@ const findAll = async (req, res) => {
   }
 };
 
+/**
+ * Middleware qui permet de récuperer une sous-catégorie
+ * @param req
+ * @param res
+ * @returns {Promise<*>}
+ */
 const findOneById = async (req, res) => {
   const id = req.params.id ? req.params.id : req.id;
   const statusCode = req.method === "POST" ? 201 : 200;
@@ -16,13 +28,19 @@ const findOneById = async (req, res) => {
   try {
     const [results] = await UnderCategory.findOneById(id);
     if (results.length === 0) return res.status(404).send();
-    // recuperer ici les sous catégorie associés
     return res.status(statusCode).json({ ...results[0] });
   } catch (e) {
     return res.status(500).send(e.message);
   }
 };
 
+/**
+ * Middleware qui permet de créer une sous-catégorie
+ * @param req
+ * @param res
+ * @param next
+ * @returns {Promise<*>}
+ */
 const createOne = async (req, res, next) => {
   try {
     const [result] = await UnderCategory.createOne(req.underCategoryInformation);
@@ -33,6 +51,13 @@ const createOne = async (req, res, next) => {
   }
 };
 
+/**
+ * Middleware qui permet de mettre à jour une sous-catégorie
+ * @param req
+ * @param res
+ * @param next
+ * @returns {Promise<*>}
+ */
 const updateOne = async (req, res, next) => {
   const { id } = req.params;
   try {
@@ -43,11 +68,16 @@ const updateOne = async (req, res, next) => {
   }
 };
 
+/**
+ * Middleware qui permet de supprimer une sous-catégorie
+ * @param req
+ * @param res
+ * @returns {Promise<*>}
+ */
 const deleteOne = async (req, res) => {
   const { id } = req.params;
   try {
-    const [result] = await UnderCategory.deleteOne(id);
-    if (result.affectedRows === 0) return res.status(404).send();
+    await UnderCategory.deleteOne(id);
     return res.status(204).send();
   } catch (e) {
     return res.status(500).send(e.message);

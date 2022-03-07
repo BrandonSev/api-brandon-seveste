@@ -10,7 +10,12 @@ const createToken = (id) => {
   });
 };
 
-// Fonction qui permet de créer un compte
+/**
+ * Middleware qui permet de s'inscrire
+ * @param req
+ * @param res
+ * @returns {Promise<*>}
+ */
 module.exports.signUp = async (req, res) => {
   const saltRounds = 10;
   // eslint-disable-next-line prefer-const
@@ -36,7 +41,12 @@ module.exports.signUp = async (req, res) => {
   }
 };
 
-// Fonction qui permet de se connecter
+/**
+ * Middleware qui permet de se connecter
+ * @param req
+ * @param res
+ * @returns {Promise<unknown>}
+ */
 module.exports.signIn = async (req, res) => {
   const { email, password } = req.body;
   if (!email || !password) return res.status(400).send();
@@ -60,7 +70,12 @@ module.exports.signIn = async (req, res) => {
   }
 };
 
-// Fonction qui permet de se déconnecter
+/**
+ * Middleware qui permet de se déconnecter
+ * @param req
+ * @param res
+ * @returns {*}
+ */
 module.exports.signOut = (req, res) => {
   if (req.cookies.jwt) {
     return res.clearCookie("jwt").status(200).json({ message: "Vous êtes maintenant déconnecté" });
