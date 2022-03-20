@@ -120,18 +120,21 @@ const createResponsiveSize = async (req, res, next) => {
  * @returns {Promise<*>}
  */
 const createMultiple = async (req, res, next) => {
-  req.files.map(async (file) => {
+  const [images] = await req.files.map(async (file) => {
     try {
-      const image = await createImage(file, "webp");
-      return await Images.createOne({
-        src: image,
+      const imageSrc = await createImage(file, "webp");
+      const [imageCreated] = await Images.createOne({
+        src: imageSrc,
         alt: file.originalname.split(".")[0],
         project_id: req.id || req.body.project_id,
       });
+      const [image] = await Images.findOneById(imageCreated.insertId);
+      return image;
     } catch (e) {
       return res.status(500).send(e.message);
     }
   });
+  req.images = await images;
   return next();
 };
 
@@ -178,10 +181,8 @@ const uploadFile = (req, res, next) => {
     if (err) {
       return res.status(500).json(err);
     }
-    if (req.files !== undefined) {
-      if (req.body.data) {
-        req.body = JSON.parse(req.body.data);
-      }
+    if (req.body.data) {
+      req.body = JSON.parse(req.body.data);
     }
     return next();
   });

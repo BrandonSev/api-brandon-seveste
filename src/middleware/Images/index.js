@@ -12,6 +12,9 @@ const { breakpointList, createImage } = require("../../controllers/images.contro
  */
 const validatePutImages = async (req, res, next) => {
   const { project_id } = req.body;
+  const { id } = req.params;
+  const [[image]] = await Images.findOneById(id);
+  if (!image) return res.status(404).send();
   const imageInformation = {};
   if (req.files[0]) {
     imageInformation.src = await createImage(req.files[0], "webp");

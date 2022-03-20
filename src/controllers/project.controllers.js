@@ -54,7 +54,7 @@ const findOneById = async (req, res) => {
     const [results] = await Project.findOneById(id);
     if (results.length === 0) return res.status(404).send();
     const [images] = await Images.findImagesByProjectId(id);
-    return res.status(statusCode).json({ ...results[0], images });
+    return res.status(statusCode).json({ ...results[0], images: req.images ?? images });
   } catch (e) {
     return res.status(500).send(e.message);
   }

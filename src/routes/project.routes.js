@@ -10,7 +10,7 @@ projectRouter.post(
   ImagesController.uploadFile,
   validateCreateProject,
   ProjectController.createOne,
-  ImagesController.createResponsiveSize,
+  ImagesController.createMultiple,
   ProjectController.findOneById,
 );
 
