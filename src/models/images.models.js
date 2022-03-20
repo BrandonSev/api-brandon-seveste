@@ -2,12 +2,12 @@ const { connection } = require("../../db-connection");
 
 class Images {
   static findAll() {
-    const sql = "SELECT * FROM images";
+    const sql = "SELECT i.*, p.title as project_name FROM images as i INNER JOIN project as p ON p.id=i.project_id";
     return connection.promise().query(sql);
   }
 
   static findOneById(id) {
-    const sql = "SELECT * FROM images WHERE id=?";
+    const sql = "SELECT i.*, p.title as project_name FROM images as i INNER JOIN project as p ON p.id=i.project_id WHERE i.id=?";
     return connection.promise().query(sql, [id]);
   }
 
