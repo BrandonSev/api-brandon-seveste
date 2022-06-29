@@ -2,7 +2,7 @@ const { connection } = require("../../db-connection");
 
 class UnderCategory {
   static findAll() {
-    const sql = "SELECT * FROM under_category";
+    const sql = "SELECT uc.*, c.title as categoryTitle FROM under_category uc LEFT JOIN category c ON c.id=uc.category_id";
     return connection.promise().query(sql);
   }
 

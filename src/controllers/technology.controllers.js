@@ -11,7 +11,14 @@ const findAll = async (req, res) => {
     const [technology] = await Technology.findAll();
     let results = [];
     technology.forEach((tech, i) => {
-      results = [...results, { ...tech, category: { title: technology[i].category }, under_category: { title: technology[i].under_category } }];
+      results = [
+        ...results,
+        {
+          ...tech,
+          category: { title: technology[i].category },
+          under_category: { title: technology[i].under_category },
+        },
+      ];
     });
     return res.status(200).send(results);
   } catch (e) {

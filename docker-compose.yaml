@@ -1,0 +1,46 @@
+version: '3'
+
+services:
+  api:
+    container_name: api-portfolio
+    build: .
+    env_file:
+      - ./.env
+    volumes:
+      - .:/usr/src/app
+    ports:
+      - 8000:8000
+    depends_on:
+      - mysql
+    restart: always
+
+  mysql:
+    image: mysql
+    command: --default-authentication-plugin=mysql_native_password
+    container_name: mysql-api
+    restart: always
+    expose:
+      - "3306"
+    ports:
+      - "3306:3306"    
+    environment:
+      - MYSQL_DATABASE=portfolio
+      - MYSQL_ROOT_PASSWORD=root
+    
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: phpmyadmin-portfolio
+    depends_on:
+      - mysql
+    environment:
+      - PMA_HOST=mysql
+    links:
+      - mysql:mysql
+    ports:
+      - 8080:80
+    restart: always
+
+networks:
+  default:
+    external:
+      name: dashboard-portfolio

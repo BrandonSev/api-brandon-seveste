@@ -3,7 +3,7 @@ const { connection } = require("../../db-connection");
 class Technology {
   static findAll() {
     const sql =
-      "SELECT t.*, c.title as category, uc.title as under_category FROM technology as t LEFT JOIN category as c ON t.category_id=c.id LEFT JOIN under_category as uc ON uc.id=t.under_category_id";
+      "SELECT t.*, uc.title as under_category, c.title as category, c.id as category_id FROM technology as t LEFT JOIN under_category as uc ON uc.id=t.under_category_id INNER JOIN category as c ON c.id=uc.category_id";
     return connection.promise().query(sql);
   }
 

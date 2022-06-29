@@ -2,8 +2,18 @@ require("dotenv").config();
 const emailRouter = require("express").Router();
 const nodemailer = require("nodemailer");
 const { google } = require("googleapis");
+const fetch = require("node-fetch");
 
-const { SENDER_EMAIL_ADDRESS, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, GOOGLE_REDIRECT_URL, GOOGLE_REFRESH_TOKEN } = process.env;
+const { SENDER_EMAIL_ADDRESS, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, GOOGLE_REDIRECT_URL, GOOGLE_REFRESH_TOKEN, RECAPTCHA_SECRET_KEY } = process.env;
+
+const validateHuman = async (token) => {
+  const res = await fetch(`https://www.google.com/recaptcha/api/siteverify?secret=${RECAPTCHA_SECRET_KEY}&response=${token}`, {
+    method: "POST",
+  });
+  const data = await res.json();
+
+  return data.success;
+};
 
 // Utilisation de OAuth2 pour l'envoie de mail en prod
 const oAuth2client = new google.auth.OAuth2(GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, GOOGLE_REDIRECT_URL);
@@ -24,16 +34,21 @@ const transport = nodemailer.createTransport({
 });
 
 emailRouter.post("/send", async (req, res) => {
-  const { name, email, message, subject } = req.body;
+  const { firstname, lastname, email, message, token } = req.body;
+  const human = await validateHuman(token);
+  if (!human) {
+    return res.status(400).send({ message: "You're not human!" });
+  }
+  const fullname = `${firstname} ${lastname}`;
   const mailOptions = {
     from: email,
     to: SENDER_EMAIL_ADDRESS,
-    subject: `${subject} - ${name}`,
-    html: `<p style="font-weight: bold">${name}</p><p>${message}</p>
-    <p style="font-weight: lighter">${email}</p>
-`,
+    subject: `${fullname} - ${email}`,
+    html: `
+      <p style="font-weight: bold">${fullname},</p><p>${message}</p>
+    `,
   };
-  transport.sendMail(mailOptions, (err) => {
+  return transport.sendMail(mailOptions, (err) => {
     if (err) return res.status(500).send(err);
     return res.status(200).json({ message: "Le mail a bien été envoyé" });
   });

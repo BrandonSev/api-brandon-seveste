@@ -11,11 +11,11 @@ const { createImage } = require("../../controllers/images.controllers");
  * @returns {Promise<*>}
  */
 const validatePostTechnology = async (req, res, next) => {
-  const { title, category_id, under_category_id } = req.body;
+  const { title, under_category_id } = req.body;
   const [file] = req.files;
-  if (!title && !category_id && !file && !under_category_id) return res.status(422).send();
+  if (!title && !file && !under_category_id) return res.status(422).send();
   const image = await createImage(file, "webp");
-  req.technologyInformation = { name: title, category_id, under_category_id, logo: image };
+  req.technologyInformation = { name: title, under_category_id, logo: image };
   return next();
 };
 
@@ -30,15 +30,11 @@ const removePrevTechnologyImage = async (req, res, next) => {
   if (req.method === "PUT") {
     if (!req.files.length) return next();
   }
-  try {
-    // eslint-disable-next-line consistent-return
-    fs.unlink(path.join(__dirname, `../../../public/images/${req.technologyInformation.technology[0].logo}`), (err) => {
-      if (err) return res.status(500).send();
-    });
-    return next();
-  } catch (e) {
-    return res.status(500).send(e.message);
-  }
+  fs.unlink(path.join(__dirname, `../../../public/images/${req.technologyImage.logo}`), (err) => {
+    if (err) return res.status(500).send(err);
+    return true;
+  });
+  return next();
 };
 
 /**
@@ -49,14 +45,15 @@ const removePrevTechnologyImage = async (req, res, next) => {
  * @returns {Promise<*>}
  */
 const validatePutTechnology = async (req, res, next) => {
-  const { title, category_id, under_category_id } = req.body;
+  const { title, under_category_id } = req.body;
   const [file] = req.files;
-  const [technology] = await Technology.findOneById(req.params.id);
-  if (!technology.length) return res.status(404).send();
-  req.technologyInformation = { name: title, category_id, under_category_id };
+  const [[technology]] = await Technology.findOneById(req.params.id);
+  if (!technology) return res.status(404).send();
+  req.technologyInformation = { name: title, under_category_id };
   if (file) {
     const image = await createImage(file, "webp");
-    req.technologyInformation = { ...req.technologyInformation, logo: image, technology };
+    req.technologyInformation = { ...req.technologyInformation, logo: image };
+    req.technologyImage = technology;
   }
   return next();
 };
@@ -69,10 +66,10 @@ const validatePutTechnology = async (req, res, next) => {
  */
 const validateRemoveTechnology = async (req, res, next) => {
   const { id } = req.params;
-  const [technology] = await Technology.findOneById(id);
-  if (!technology.length) return res.status(404).send();
+  const [[technology]] = await Technology.findOneById(id);
+  if (!technology) return res.status(404).send();
   // Envoie de la technologie trouvée dans la requête pour permettre la suppresion de l'image en local via le nom de l'image en BDD
-  req.technologyInformation = { technology };
+  req.technologyImage = technology;
   return next();
 };
 
